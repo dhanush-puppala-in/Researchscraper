@@ -2,10 +2,12 @@ const { searchScholar } = require("./scholarService");
 const { searchIEEE } = require("./ieeeService");
 const { searchSemanticScholar } = require("./semanticScholarService");
 const { searchArxiv } = require("./arxivService");
+const { searchCrossref } = require("./crossrefService");
+const { searchOpenAlex } = require("./openAlexService");
 
 /**
  * Search papers across multi-source aggregator:
- * 'google_scholar', 'ieee', 'semantic_scholar', 'arxiv', or 'all'
+ * 'crossref', 'openalex', 'arxiv', 'google_scholar', 'ieee', 'semantic_scholar', or 'all'
  */
 async function fetchPapersFromSources({ query, startDate = null, endDate = null, startYear = null, endYear = null, source = "all" }) {
   const tasks = [];
@@ -14,41 +16,61 @@ async function fetchPapersFromSources({ query, startDate = null, endDate = null,
   const effectiveStart = startYear || startDate;
   const effectiveEnd = endYear || endDate;
 
-  // 1. Google Scholar (SerpApi / Scraper)
-  if (selectedSource === "all" || selectedSource === "google_scholar" || selectedSource === "scholar") {
+  // 1. Crossref API (Nature, IEEE, Springer, ACM, Wiley, Elsevier) - 100% Reliable
+  if (selectedSource === "all" || selectedSource === "crossref" || selectedSource === "ieee") {
     tasks.push(
-      searchScholar(query, effectiveStart, effectiveEnd).catch(err => {
-        console.warn("Google Scholar fetch warning:", err.message);
+      searchCrossref(query, effectiveStart, effectiveEnd).catch(err => {
+        console.warn("Crossref fetch notice:", err.message);
         return [];
       })
     );
   }
 
-  // 2. IEEE Xplore API
-  if (selectedSource === "all" || selectedSource === "ieee" || selectedSource === "ieee_xplore") {
+  // 2. OpenAlex API (250 Million Open Access Works) - 100% Reliable
+  if (selectedSource === "all" || selectedSource === "openalex") {
     tasks.push(
-      searchIEEE(query, effectiveStart, effectiveEnd).catch(err => {
-        console.warn("IEEE fetch warning:", err.message);
+      searchOpenAlex(query, effectiveStart, effectiveEnd).catch(err => {
+        console.warn("OpenAlex fetch notice:", err.message);
         return [];
       })
     );
   }
 
-  // 3. Semantic Scholar API (Fast, Reliable Cloud API)
-  if (selectedSource === "all" || selectedSource === "semantic_scholar" || selectedSource === "semantic") {
-    tasks.push(
-      searchSemanticScholar(query, effectiveStart, effectiveEnd).catch(err => {
-        console.warn("Semantic Scholar fetch warning:", err.message);
-        return [];
-      })
-    );
-  }
-
-  // 4. arXiv API (Open Access, No Rate Limit / IP block)
+  // 3. arXiv API (AI, Computer Science, Physics) - 100% Reliable
   if (selectedSource === "all" || selectedSource === "arxiv") {
     tasks.push(
       searchArxiv(query, effectiveStart, effectiveEnd).catch(err => {
-        console.warn("arXiv fetch warning:", err.message);
+        console.warn("arXiv fetch notice:", err.message);
+        return [];
+      })
+    );
+  }
+
+  // 4. Google Scholar (SerpApi / Scraper)
+  if (selectedSource === "all" || selectedSource === "google_scholar" || selectedSource === "scholar") {
+    tasks.push(
+      searchScholar(query, effectiveStart, effectiveEnd).catch(err => {
+        console.warn("Google Scholar fetch notice:", err.message);
+        return [];
+      })
+    );
+  }
+
+  // 5. IEEE Xplore API
+  if (selectedSource === "ieee" || selectedSource === "ieee_xplore") {
+    tasks.push(
+      searchIEEE(query, effectiveStart, effectiveEnd).catch(err => {
+        console.warn("IEEE API notice:", err.message);
+        return [];
+      })
+    );
+  }
+
+  // 6. Semantic Scholar
+  if (selectedSource === "semantic_scholar" || selectedSource === "semantic") {
+    tasks.push(
+      searchSemanticScholar(query, effectiveStart, effectiveEnd).catch(err => {
+        console.warn("Semantic Scholar notice:", err.message);
         return [];
       })
     );

@@ -41,7 +41,6 @@ function searchGoogleScholarSerpApi(query, startDate = null, endDate = null) {
 
       const results = json.organic_results || [];
       const papers = results.map(item => {
-        // Look for PDF link in resources or direct links
         let pdfLink = null;
         if (Array.isArray(item.resources)) {
           const pdfResource = item.resources.find(
@@ -74,7 +73,7 @@ function searchGoogleScholarSerpApi(query, startDate = null, endDate = null) {
 }
 
 /**
- * High-level Scholar Search: tries SerpApi first; falls back to Playwright scraper if key is dummy/missing/fails
+ * High-level Scholar Search: tries SerpApi first; falls back to Playwright scraper with timeout
  */
 async function searchScholar(query, startDate = null, endDate = null) {
   const apiKey = process.env.SERPAPI_API_KEY;
@@ -87,12 +86,18 @@ async function searchScholar(query, startDate = null, endDate = null) {
         return results;
       }
     } catch (err) {
-      console.warn("SerpApi Scholar search failed, falling back to Playwright scraper:", err.message);
+      console.warn("SerpApi Scholar search failed:", err.message);
     }
   }
 
-  // Fallback to Playwright scraper
-  return await scrapeScholarFallback(query, startDate, endDate);
+  // Fallback to Playwright with timeout
+  try {
+    const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error("Scholar timeout")), 6000));
+    return await Promise.race([scrapeScholarFallback(query, startDate, endDate), timeoutPromise]);
+  } catch (err) {
+    console.warn("Scholar scraper fallback notice:", err.message);
+    return [];
+  }
 }
 
 module.exports = {

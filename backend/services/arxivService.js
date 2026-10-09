@@ -11,18 +11,18 @@ function extractYear(val) {
 }
 
 /**
- * Search arXiv API (Public, No Key Required, 100% Reliable in Cloud)
+ * Search arXiv API over HTTPS
  */
-async function searchArxiv(query, startDate = null, endDate = null, maxResults = 20) {
+async function searchArxiv(query, startDate = null, endDate = null, maxResults = 15) {
   const startYear = extractYear(startDate);
   const endYear = extractYear(endDate);
 
   try {
-    const formattedQuery = encodeURIComponent(query.trim());
-    const url = `http://export.arxiv.org/api/query?search_query=all:${formattedQuery}&start=0&max_results=${maxResults}&sortBy=submittedDate&sortOrder=descending`;
+    const encodedQuery = encodeURIComponent(query.trim());
+    const url = `https://export.arxiv.org/api/query?search_query=all:${encodedQuery}&start=0&max_results=${maxResults}&sortBy=submittedDate&sortOrder=descending`;
 
     const response = await axios.get(url, { timeout: 10000 });
-    const xml = response.data || "";
+    const xml = String(response.data || "");
 
     const entries = xml.split("<entry>").slice(1);
     const papers = [];
@@ -40,13 +40,11 @@ async function searchArxiv(query, startDate = null, endDate = null, maxResults =
 
       const pubYear = published ? new Date(published).getFullYear() : null;
 
-      // Filter by year if specified
       if (startYear && pubYear && pubYear < startYear) continue;
       if (endYear && pubYear && pubYear > endYear) continue;
 
-      // Author names
-      const authorMatches = [...entry.matchAll(/<author>[\s\S]*?<name>(.*?)<\/name>[\s\S]*?<\/author>/g)];
-      const authors = authorMatches.map(m => m[1]).join(", ");
+      const authorMatches = [...entry.matchAll(/<name>(.*?)<\/name>/g)];
+      const authors = authorMatches.map(m => m[1]).slice(0, 5).join(", ");
 
       const arxivId = rawId.split("/abs/").pop() || rawId;
       const pdfLink = arxivId ? `https://arxiv.org/pdf/${arxivId}.pdf` : null;
@@ -58,7 +56,7 @@ async function searchArxiv(query, startDate = null, endDate = null, maxResults =
           documentLink: pdfLink || rawId,
           pdfLink: pdfLink,
           year: pubYear ? String(pubYear) : null,
-          snippet: summary.substring(0, 300) + (summary.length > 300 ? "..." : ""),
+          snippet: summary.substring(0, 260) + (summary.length > 260 ? "..." : ""),
           source: "arXiv (Open Access)",
           authors: authors
         });
@@ -67,7 +65,7 @@ async function searchArxiv(query, startDate = null, endDate = null, maxResults =
 
     return papers;
   } catch (error) {
-    console.warn("arXiv API search notice:", error.message);
+    console.warn("arXiv search notice:", error.message);
     return [];
   }
 }
