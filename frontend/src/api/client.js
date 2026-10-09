@@ -2,20 +2,27 @@ const RAW_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api"
 const API_BASE = RAW_URL.endsWith("/api") ? RAW_URL : `${RAW_URL.replace(/\/$/, "")}/api`;
 
 export async function fetchJson(url, options = {}) {
-  const res = await fetch(url, {
-    headers: {
-      "Content-Type": "application/json",
-      ...options.headers
-    },
-    ...options
-  });
+  try {
+    const res = await fetch(url, {
+      headers: {
+        "Content-Type": "application/json",
+        ...options.headers
+      },
+      ...options
+    });
 
-  if (!res.ok) {
-    const errorBody = await res.json().catch(() => ({}));
-    throw new Error(errorBody.error || errorBody.message || `Request failed with status ${res.status}`);
+    if (!res.ok) {
+      const errorBody = await res.json().catch(() => ({}));
+      throw new Error(errorBody.error || errorBody.message || `Request failed with status ${res.status}`);
+    }
+
+    return await res.json();
+  } catch (err) {
+    if (err.message === "Failed to fetch" || err.name === "TypeError") {
+      throw new Error("Unable to connect to backend server. If using Render free tier, it may be waking up from sleep (~45s). Please retry in a moment.");
+    }
+    throw err;
   }
-
-  return res.json();
 }
 
 export const api = {
