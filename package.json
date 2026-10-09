@@ -1,0 +1,10 @@
+{
+  "name": "research-assistant-fullstack",
+  "version": "1.0.0",
+  "description": "Multi-Source Research Paper Scraping and Discovery Platform",
+  "scripts": {
+    "start:backend": "cd backend && npm run dev",
+    "start:frontend": "cd frontend && npm run dev",
+    "build:frontend": "cd frontend && npm run build"
+  }
+}
