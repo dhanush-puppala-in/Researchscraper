@@ -6,6 +6,8 @@ const {
 } = require("../services/paperService");
 const { searchScholar } = require("../services/scholarService");
 const { searchIEEE } = require("../services/ieeeService");
+const { searchSemanticScholar } = require("../services/semanticScholarService");
+const { searchArxiv } = require("../services/arxivService");
 
 function parseYear(val) {
   if (!val) return null;
@@ -165,7 +167,7 @@ exports.runScraper = async (req, res) => {
 };
 
 // ========================================================
-// DIRECT SEARCH ACROSS ALL SOURCES (SCHOLAR & IEEE)
+// DIRECT SEARCH ACROSS ALL SOURCES (SCHOLAR, IEEE, SEMANTIC, ARXIV)
 // ========================================================
 exports.searchAllSources = async (req, res) => {
   try {
@@ -250,6 +252,60 @@ exports.searchIEEE = async (req, res) => {
     });
   } catch (err) {
     console.error("searchIEEE error:", err);
+    res.status(500).json({ error: err.message });
+  }
+};
+
+// ========================================================
+// DIRECT SEMANTIC SCHOLAR SEARCH
+// ========================================================
+exports.searchSemantic = async (req, res) => {
+  try {
+    const query = req.query.q || req.query.query || req.body?.q || req.body?.query;
+    const startDate = req.query.startDate || req.body?.startDate;
+    const endDate = req.query.endDate || req.body?.endDate;
+
+    if (!query) {
+      return res.status(400).json({ error: "Search query is required" });
+    }
+
+    const papers = await searchSemanticScholar(query, startDate, endDate);
+    res.json({
+      success: true,
+      source: "Semantic Scholar",
+      count: papers.length,
+      dateRange: { startDate, endDate },
+      results: papers
+    });
+  } catch (err) {
+    console.error("searchSemantic error:", err);
+    res.status(500).json({ error: err.message });
+  }
+};
+
+// ========================================================
+// DIRECT ARXIV SEARCH
+// ========================================================
+exports.searchArxiv = async (req, res) => {
+  try {
+    const query = req.query.q || req.query.query || req.body?.q || req.body?.query;
+    const startDate = req.query.startDate || req.body?.startDate;
+    const endDate = req.query.endDate || req.body?.endDate;
+
+    if (!query) {
+      return res.status(400).json({ error: "Search query is required" });
+    }
+
+    const papers = await searchArxiv(query, startDate, endDate);
+    res.json({
+      success: true,
+      source: "arXiv",
+      count: papers.length,
+      dateRange: { startDate, endDate },
+      results: papers
+    });
+  } catch (err) {
+    console.error("searchArxiv error:", err);
     res.status(500).json({ error: err.message });
   }
 };

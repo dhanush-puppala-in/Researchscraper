@@ -187,9 +187,11 @@ export default function LiveSearch({ notify, onPaperSaved }) {
                   className="input-field"
                   style={{ cursor: "pointer" }}
                 >
-                  <option value="all">All Sources (Scholar + IEEE)</option>
-                  <option value="google_scholar">Google Scholar Only</option>
-                  <option value="ieee">IEEE Xplore Only</option>
+                  <option value="all">All Sources (Scholar, IEEE, Semantic, arXiv)</option>
+                  <option value="google_scholar">Google Scholar</option>
+                  <option value="semantic_scholar">Semantic Scholar (Open Access)</option>
+                  <option value="arxiv">arXiv (AI, ML, Science)</option>
+                  <option value="ieee">IEEE Xplore</option>
                 </select>
               </div>
             </div>

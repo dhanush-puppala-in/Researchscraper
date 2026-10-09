@@ -99,6 +99,8 @@ export default function PaperLibrary({ papers, setPapers, notify }) {
             >
               <option value="all">All Sources</option>
               <option value="scholar">Google Scholar</option>
+              <option value="semantic">Semantic Scholar</option>
+              <option value="arxiv">arXiv</option>
               <option value="ieee">IEEE Xplore</option>
             </select>
           </div>

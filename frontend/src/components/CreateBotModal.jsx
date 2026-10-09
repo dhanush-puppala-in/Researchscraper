@@ -147,8 +147,10 @@ export default function CreateBotModal({ isOpen, onClose, onCreated, notify }) {
               onChange={(e) => setSource(e.target.value)}
               className="input-field"
             >
-              <option value="all">All Sources (Scholar + IEEE)</option>
+              <option value="all">All Sources (Scholar, IEEE, Semantic, arXiv)</option>
               <option value="google_scholar">Google Scholar</option>
+              <option value="semantic_scholar">Semantic Scholar</option>
+              <option value="arxiv">arXiv</option>
               <option value="ieee">IEEE Xplore</option>
             </select>
           </div>
